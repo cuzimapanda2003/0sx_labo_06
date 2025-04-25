@@ -1,11 +1,21 @@
 #include <HCSR04.h>
 #include <LCD_I2C.h>
+#include <U8g2lib.h>
 
 
 
 #define CLK_PIN 30
 #define DIN_PIN 34
 #define CS_PIN 32  // Chip Select
+
+U8G2_MAX7219_8X8_F_4W_SW_SPI u8g2(
+  U8G2_R0,       // rotation
+  /* clock=*/ CLK_PIN, // pin Arduino reliée à CLK (horloge)
+  /* data=*/ DIN_PIN,  // pin Arduino reliée à DIN (données)
+  /* cs=*/ CS_PIN,    // pin Arduino reliée à CS (chip select)
+  /* dc=*/ U8X8_PIN_NONE,
+  /* reset=*/ U8X8_PIN_NONE
+);
 
 #define TRIGGER_PIN 3
 #define ECHO_PIN 2
@@ -182,6 +192,20 @@ void ecranSetup(){
   u8g2.sendBuffer(); 
 }
 
+void dessinInterdit(){
+
+  u8g2.clearBuffer();
+  u8g2.drawCircle(3, 4, 3);
+  u8g2.drawLine(0, 0, 8, 8);
+  u8g2.sendBuffer();
+}
+
+void dessinX(){
+  u8g2.clearBuffer();
+  u8g2.drawLine(7, 0, 0, 7);
+  u8g2.drawLine(0, 0, 8, 8);
+  u8g2.sendBuffer();
+}
 
 
 
