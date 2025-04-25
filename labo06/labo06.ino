@@ -65,6 +65,14 @@ int maxAccel = 100;
 int inf = 30;
 int sup = 60;
 
+bool alarmeActive = false;
+unsigned long alarmeStartTime = 0;
+
+unsigned long tempsAffichageSymbole = 0;
+bool symboleActif = false;
+
+
+
 
 
 
@@ -98,6 +106,7 @@ void loop() {
   affichage();
   etatSystem();
   commande();
+  verifierSymbole();
 }
 
 
@@ -114,6 +123,12 @@ void etatSystem() {
 
   if (distance <= alerte) {
     etatDistance = TROP_PRES;
+
+    if (!alarmeActive) {
+      alarmeActive = true;
+      alarmeStartTime = currentTimes;
+    }
+
     objetEstLoin = false;
   } else if (distance > alerte && distance < inf) {
     etatDistance = TROP_PROCHE;
@@ -125,19 +140,38 @@ void etatSystem() {
     etatDistance = TROP_LOIN;
     if (!objetEstLoin) {
       objetEstLoin = true;
-      tempsDepuisLoin = millis();
+      tempsDepuisLoin = currentTimes;
     }
+  }
+
+
+  if (etatDistance == TROP_PRES) {
+    alarme();
+  } else if (alarmeActive) {
+    if (currentTimes - alarmeStartTime < delaiExtinction) {
+      alarme();
+    } else {
+      alarmeOff();
+      alarmeActive = false;
+    }
+  } else {
+    alarmeOff();
   }
 
   switch (etatDistance) {
     case TROP_PRES:
       tropPres();
       girophare();
-      alarme();
       break;
 
     case TROP_PROCHE:
-      // tu peux ajouter une fonction si besoin
+      tropPres();
+      if (currentTimes - tempsDepuisLoin >= delaiExtinction) {
+        firstTime = false;
+        girophareEteint();
+      } else if (!firstTime) {
+        girophare();
+      }
       break;
 
     case MOTEUR:
@@ -147,18 +181,21 @@ void etatSystem() {
         previousTarget = targetPosition;
       }
       affichageMilieu(targetPosition);
+      if (currentTimes - tempsDepuisLoin >= delaiExtinction) {
+        firstTime = false;
+        girophareEteint();
+      } else if (!firstTime) {
+        girophare();
+      }
       break;
 
     case TROP_LOIN:
       tropLoin();
-
       if (currentTimes - tempsDepuisLoin >= delaiExtinction) {
         firstTime = false;
         girophareEteint();
-        alarmeOff();
-      } else if (firstTime == false) {
+      } else if (!firstTime) {
         girophare();
-        alarme();
       }
       break;
   }
@@ -188,7 +225,7 @@ void affichage() {
 void affichageMilieu(long steps) {
   degree = (steps / 2048.0) * 360.0;
   lcd.setCursor(0, 1);
-  lcd.print("                ");  
+  lcd.print("                ");
   lcd.setCursor(0, 1);
   lcd.print("Deg  : ");
   lcd.print(degree, 1);
@@ -197,7 +234,7 @@ void affichageMilieu(long steps) {
 
 void tropLoin() {
   lcd.setCursor(0, 1);
-  lcd.print("                ");  
+  lcd.print("                ");
   lcd.setCursor(0, 1);
   lcd.print("obj  : trop loin");
 }
@@ -205,7 +242,7 @@ void tropLoin() {
 
 void tropPres() {
   lcd.setCursor(0, 1);
-  lcd.print("                ");  
+  lcd.print("                ");
   lcd.setCursor(0, 1);
   lcd.print("obj  : trop pret");
 }
@@ -252,12 +289,24 @@ void ecranSetup() {
   u8g2.sendBuffer();
 }
 
+void verifierSymbole() {
+  if (symboleActif && millis() - tempsAffichageSymbole >= 3000) {
+    u8g2.clearBuffer();
+    u8g2.sendBuffer();
+    symboleActif = false;
+  }
+}
+
+
+
 void dessinInterdit() {
 
   u8g2.clearBuffer();
   u8g2.drawCircle(3, 4, 3);
   u8g2.drawLine(0, 0, 8, 8);
   u8g2.sendBuffer();
+  symboleActif = true;
+  tempsAffichageSymbole = millis();
 }
 
 void dessinX() {
@@ -265,6 +314,8 @@ void dessinX() {
   u8g2.drawLine(7, 0, 0, 7);
   u8g2.drawLine(0, 0, 8, 8);
   u8g2.sendBuffer();
+  symboleActif = true;
+  tempsAffichageSymbole = millis();
 }
 
 void dessinWeGood() {
@@ -272,6 +323,8 @@ void dessinWeGood() {
   u8g2.drawLine(4, 4, 2, 6);
   u8g2.drawLine(1, 1, 4, 4);
   u8g2.sendBuffer();
+  symboleActif = true;
+  tempsAffichageSymbole = millis();
 }
 
 
@@ -308,34 +361,41 @@ void analyserCommande(const String& tampon, String& commande, String& arg1, Stri
 void commande() {
   String tampon = Serial.readStringUntil('\n');
 
-
-  // Serial.println("Réception : " + tampon);
-
   String commande;
   String arg1, arg2;
-
   analyserCommande(tampon, commande, arg1, arg2);
+
+  bool commandeValide = false;
 
   if (commande == "g_dist") {
     Serial.println(distance);
     dessinWeGood();
-  }
-
-  if (commande == "cfg" && arg1 == "alm") {
+    commandeValide = true;
+  } else if (commande == "cfg" && arg1 == "alm") {
     alerte = arg2.toInt();
     dessinWeGood();
+    commandeValide = true;
+  } else if (commande == "cfg" && arg1 == "lim_inf") {
+    if (arg2.toInt() > sup) {
+      Serial.println("erreur 🚫");
+      dessinInterdit();
+    } else {
+      inf = arg2.toInt();
+      dessinWeGood();
+    }
+    commandeValide = true;
+  } else if (commande == "cfg" && arg1 == "lim_sup") {
+    if (arg2.toInt() < inf) {
+      Serial.println("erreur 🚫");
+      dessinInterdit();
+    } else {
+      sup = arg2.toInt();
+      dessinWeGood();
+    }
+    commandeValide = true;
   }
 
-  if (commande == "cfg" && arg1 == "lim_inf") {
+  if (!commandeValide && tampon != "") {
+    dessinX();
   }
 }
-
-
-
-
-
-
-
-
-
-
