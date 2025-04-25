@@ -216,6 +216,37 @@ void dessinWeGood(){
 }
 
 
+void commande(){
+
+
+ String tampon = Serial.readStringUntil('\n');
+
+
+  Serial.println("Réception : " + tampon);
+
+  String commande;
+  String arg1, arg2;
+
+  analyserCommande(tampon, commande, arg1, arg2);
+
+  if (commande == "cfg;alm;X") {
+
+  }
+
+  if (commande == "cfg;lim_inf|lim_sup;X") {
+
+  }
+else{
+
+  
+}
+
+
+
+
+}
+
+
 
 
 
