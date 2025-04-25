@@ -46,6 +46,8 @@ void setup() {
   pinMode(redPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 
+  ecranSetup();
+
 
   Serial.begin(9600);
   lcd.begin();
@@ -170,3 +172,37 @@ void girophareEteint() {
   digitalWrite(redPin, LOW);
   digitalWrite(bluePin, LOW);
 }
+
+
+void ecranSetup(){
+  u8g2.begin();
+  u8g2.setContrast(5);
+  u8g2.setFont(u8g2_font_4x6_tr);
+  u8g2.clearBuffer(); 
+  u8g2.sendBuffer(); 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
