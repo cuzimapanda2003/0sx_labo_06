@@ -59,19 +59,19 @@ void setup() {
   ecranSetup();
 
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   lcd.begin();
   lcd.backlight();
   lcdstart();
 }
 
 void loop() {
-  chercherDistance();
-  affichage();
-  etatSystem();
-  if(Serial.available()){
+ // chercherDistance();
+ // affichage();
+ // etatSystem();
+
     commande();
-  }
+  
 }
 
 
@@ -219,37 +219,58 @@ void dessinWeGood(){
 }
 
 
-void commande(){
+void analyserCommande(const String& tampon, String& commande, String& arg1, String& arg2) {
+  commande = "";
+  arg1 = "";
+  arg2 = "";
+
+  int firstSep = tampon.indexOf(';');
+  int secondSep = tampon.indexOf(';', firstSep + 1);
+
+  if (firstSep == -1) {
+    // Pas de point-virgule, c'est peut-être "stop" ou autre commande sans paramètre
+    commande = tampon;
+    return;
+  }
+
+  // Extraire la commande
+  commande = tampon.substring(0, firstSep);
+
+  // Extraire arg1
+  if (secondSep != -1) {
+    arg1 = tampon.substring(firstSep + 1, secondSep);
+
+    arg2 = tampon.substring(secondSep + 1);
+  } else {
+    // Il y a une seule valeur après la commande
+    arg1 = tampon.substring(firstSep + 1);
+  }
+}
 
 
+
+void commande() {
  String tampon = Serial.readStringUntil('\n');
 
 
-  Serial.println("Réception : " + tampon);
+  // Serial.println("Réception : " + tampon);
 
   String commande;
   String arg1, arg2;
 
   analyserCommande(tampon, commande, arg1, arg2);
 
-  if (commande == "stop") {
-    stopCmdFlag = true;
-    Serial.println("cmd : stop");
+  if (commande == "g_dist") {
+      
   }
 
-  if (commande == "rst") {
-    resetCmdFlag = true;
-    Serial.println("cmd : reset");
+  if (commande == "") {
+
   }
 
-  if (commande == "cnt") {
-    startValue = arg1.toInt();
-    endValue = arg2.toInt();
-    countCmdFlag = true;
-    Serial.println("cmd : count");
+  if (commande == "") {
+
   }
-
-
 }
 
 
