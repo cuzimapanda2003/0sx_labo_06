@@ -69,6 +69,9 @@ void loop() {
   chercherDistance();
   affichage();
   etatSystem();
+  if(Serial.available()){
+    commande();
+  }
 }
 
 
@@ -229,19 +232,22 @@ void commande(){
 
   analyserCommande(tampon, commande, arg1, arg2);
 
-  if (commande == "cfg;alm;X") {
-
+  if (commande == "stop") {
+    stopCmdFlag = true;
+    Serial.println("cmd : stop");
   }
 
-  if (commande == "cfg;lim_inf|lim_sup;X") {
-
+  if (commande == "rst") {
+    resetCmdFlag = true;
+    Serial.println("cmd : reset");
   }
-else{
 
-  
-}
-
-
+  if (commande == "cnt") {
+    startValue = arg1.toInt();
+    endValue = arg2.toInt();
+    countCmdFlag = true;
+    Serial.println("cmd : count");
+  }
 
 
 }
