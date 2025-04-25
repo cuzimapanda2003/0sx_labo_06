@@ -207,6 +207,14 @@ void dessinX(){
   u8g2.sendBuffer();
 }
 
+void dessinWeGood(){
+  u8g2.clearBuffer();
+  u8g2.drawLine(4, 4, 2, 6);
+  u8g2.drawLine(1, 1, 4, 4);
+  u8g2.sendBuffer();
+  
+}
+
 
 
 
