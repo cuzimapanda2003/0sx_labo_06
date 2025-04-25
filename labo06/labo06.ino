@@ -203,9 +203,6 @@ void etatSystem() {
 
 
 
-
-
-
 void affichage() {
 
   if (distance != previousDistance) {
