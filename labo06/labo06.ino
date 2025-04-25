@@ -1,6 +1,12 @@
 #include <HCSR04.h>
 #include <LCD_I2C.h>
 
+
+
+#define CLK_PIN 30
+#define DIN_PIN 34
+#define CS_PIN 32  // Chip Select
+
 #define TRIGGER_PIN 3
 #define ECHO_PIN 2
 #define buzzer 4
