@@ -60,8 +60,8 @@ long targetPosition = 0;
 long previousTarget = -1;
 float degree;
 
-int maxSpeed = 500;
-int maxAccel = 100;
+int maxSpeed = 100;
+int maxAccel = 20;
 int inf = 30;
 int sup = 60;
 
@@ -113,13 +113,19 @@ void loop() {
 
 
 void chercherDistance() {
+  static unsigned long previousMillis = 0;
+  unsigned long currentMillis = millis();
 
-  distance = hc.dist();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    distance = hc.dist();
+  }
 }
 
 
 void etatSystem() {
   unsigned long currentTimes = millis();
+
 
   if (distance <= alerte) {
     etatDistance = TROP_PRES;
@@ -138,42 +144,16 @@ void etatSystem() {
     objetEstLoin = false;
   } else {
     etatDistance = TROP_LOIN;
-    if (!objetEstLoin) {
-      objetEstLoin = true;
-      tempsDepuisLoin = currentTimes;
-    }
-  }
-
-
-  if (etatDistance == TROP_PRES) {
-    alarme();
-  } else if (alarmeActive) {
-    if (currentTimes - alarmeStartTime < delaiExtinction) {
-      alarme();
-    } else {
-      alarmeOff();
-      alarmeActive = false;
-    }
-  } else {
-    alarmeOff();
+    objetEstLoin = true;
   }
 
   switch (etatDistance) {
     case TROP_PRES:
       tropPres();
-      girophare();
       break;
-
     case TROP_PROCHE:
-      tropPres();
-      if (currentTimes - tempsDepuisLoin >= delaiExtinction) {
-        firstTime = false;
-        girophareEteint();
-      } else if (!firstTime) {
-        girophare();
-      }
+      tropPres(); 
       break;
-
     case MOTEUR:
       targetPosition = map(distance, 30, 60, 0, 1024);
       if (targetPosition != previousTarget) {
@@ -181,25 +161,28 @@ void etatSystem() {
         previousTarget = targetPosition;
       }
       affichageMilieu(targetPosition);
-      if (currentTimes - tempsDepuisLoin >= delaiExtinction) {
-        firstTime = false;
-        girophareEteint();
-      } else if (!firstTime) {
-        girophare();
-      }
       break;
-
     case TROP_LOIN:
       tropLoin();
-      if (currentTimes - tempsDepuisLoin >= delaiExtinction) {
-        firstTime = false;
-        girophareEteint();
-      } else if (!firstTime) {
-        girophare();
-      }
       break;
   }
+
+
+  if (alarmeActive) {
+    if (currentTimes - alarmeStartTime <= delaiExtinction) {
+      alarme();        
+      girophare();     
+    } else {
+      alarmeOff();    
+      girophareEteint(); 
+      alarmeActive = false;
+    }
+  } else {
+    alarmeOff();
+    girophareEteint();
+  }
 }
+
 
 
 
