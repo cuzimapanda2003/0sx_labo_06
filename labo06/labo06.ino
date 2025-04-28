@@ -41,7 +41,7 @@ HCSR04 hc(TRIGGER_PIN, ECHO_PIN);
 
 const long interval = 100;
 
-enum etat_distance { TROP_PRES,
+enum etat_distance { ALERTE,
                      TROP_PROCHE,
                      MOTEUR,
                      TROP_LOIN };
@@ -129,7 +129,7 @@ void etatSystem() {
 
 
   if (distance <= alerte) {
-    etatDistance = TROP_PRES;
+    etatDistance = ALERTE;
 
     if (!alarmeActive) {
       alarmeActive = true;
@@ -149,7 +149,7 @@ void etatSystem() {
   }
 
   switch (etatDistance) {
-    case TROP_PRES:
+    case ALERTE:
       tropPres();
       break;
     case TROP_PROCHE:
