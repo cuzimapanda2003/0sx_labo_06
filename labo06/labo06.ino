@@ -339,45 +339,46 @@ void analyserCommande(const String& tampon, String& commande, String& arg1, Stri
 
 
 void commande() {
-  while (Serial.available()) {
-    String tampon = Serial.readStringUntil('\n');
+  if (!Serial.available()) {
+    return;
+  }
+  String tampon = Serial.readStringUntil('\n');
 
-    String commande;
-    String arg1, arg2;
-    analyserCommande(tampon, commande, arg1, arg2);
+  String commande;
+  String arg1, arg2;
+  analyserCommande(tampon, commande, arg1, arg2);
 
-    bool commandeValide = false;
+  bool commandeValide = false;
 
-    if (commande == "g_dist") {
-      Serial.println(distance);
+  if (commande == "g_dist") {
+    Serial.println(distance);
+    dessinWeGood();
+    commandeValide = true;
+  } else if (commande == "cfg" && arg1 == "alm") {
+    alerte = arg2.toInt();
+    dessinWeGood();
+    commandeValide = true;
+  } else if (commande == "cfg" && arg1 == "lim_inf") {
+    if (arg2.toInt() > sup) {
+      Serial.println("erreur 🚫");
+      dessinInterdit();
+    } else {
+      inf = arg2.toInt();
       dessinWeGood();
-      commandeValide = true;
-    } else if (commande == "cfg" && arg1 == "alm") {
-      alerte = arg2.toInt();
+    }
+    commandeValide = true;
+  } else if (commande == "cfg" && arg1 == "lim_sup") {
+    if (arg2.toInt() < inf) {
+      Serial.println("erreur 🚫");
+      dessinInterdit();
+    } else {
+      sup = arg2.toInt();
       dessinWeGood();
-      commandeValide = true;
-    } else if (commande == "cfg" && arg1 == "lim_inf") {
-      if (arg2.toInt() > sup) {
-        Serial.println("erreur 🚫");
-        dessinInterdit();
-      } else {
-        inf = arg2.toInt();
-        dessinWeGood();
-      }
-      commandeValide = true;
-    } else if (commande == "cfg" && arg1 == "lim_sup") {
-      if (arg2.toInt() < inf) {
-        Serial.println("erreur 🚫");
-        dessinInterdit();
-      } else {
-        sup = arg2.toInt();
-        dessinWeGood();
-      }
-      commandeValide = true;
     }
+    commandeValide = true;
+  }
 
-    if (!commandeValide && tampon != "") {
-      dessinX();
-    }
+  if (!commandeValide && tampon != "") {
+    dessinX();
   }
 }
