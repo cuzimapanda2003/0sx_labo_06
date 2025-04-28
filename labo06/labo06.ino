@@ -28,7 +28,7 @@ U8G2_MAX7219_8X8_F_4W_SW_SPI u8g2(
 
 #define TRIGGER_PIN 3
 #define ECHO_PIN 2
-#define buzzer 4
+
 int buzzerPin = 4;
 int frequence = 1;
 
@@ -60,8 +60,8 @@ long targetPosition = 0;
 long previousTarget = -1;
 float degree;
 
-int maxSpeed = 100;
-int maxAccel = 20;
+int maxSpeed = 500;
+int maxAccel = 100;
 int inf = 30;
 int sup = 60;
 
@@ -107,6 +107,7 @@ void loop() {
   etatSystem();
   commande();
   verifierSymbole();
+  myStepper.run();
 }
 
 
@@ -152,7 +153,7 @@ void etatSystem() {
       tropPres();
       break;
     case TROP_PROCHE:
-      tropPres(); 
+      tropPres();
       break;
     case MOTEUR:
       targetPosition = map(distance, 30, 60, 0, 1024);
@@ -170,11 +171,11 @@ void etatSystem() {
 
   if (alarmeActive) {
     if (currentTimes - alarmeStartTime <= delaiExtinction) {
-      alarme();        
-      girophare();     
+      alarme();
+      girophare();
     } else {
-      alarmeOff();    
-      girophareEteint(); 
+      alarmeOff();
+      girophareEteint();
       alarmeActive = false;
     }
   } else {
@@ -230,10 +231,10 @@ void tropPres() {
 
 
 void alarme() {
-  tone(buzzer, frequence);
+  tone(buzzerPin, frequence);
 }
 void alarmeOff() {
-  noTone(buzzer);
+  noTone(buzzerPin);
 }
 void girophare() {
   static unsigned long lastSwitchTime = 0;
